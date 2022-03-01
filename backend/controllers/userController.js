@@ -131,6 +131,57 @@ exports.resetPassword = catchAsyncErrors(async (req, res, next) => {
 
 })
 
+// Get currently logged in user details   =>   /api/v1/me
+exports.getUserProfile = catchAsyncErrors(async (req, res, next) => {
+    const user = await User.findById(req.user.id);
+
+    res.status(200).json({
+        success: true,
+        user
+    })
+})
+
+// Update / Change password   =>  /api/v1/password/update
+exports.updatePassword = catchAsyncErrors(async (req, res, next) => {
+    const user = await User.findById(req.user.id).select('+password');
+
+    // Check previous user password
+    const isMatched = await user.comparePassword(req.body.oldPassword)
+    if (!isMatched) {
+        return next(new ErrorHandler('Old password is incorrect'));
+    }
+
+    user.password = req.body.password;
+    await user.save();
+
+    sendToken(user, 200, res)
+
+})
+// Update user profile   =>   /api/v1/me/update
+exports.updateProfile = catchAsyncErrors(async (req, res, next) => {
+    const newUserData = {
+
+        fname: req.body.fname,
+        lname: req.body.lname,
+        birthday: req.body.birthday,
+        email: req.body.email,
+        country: req.body.country,
+        phoneNum: req.body.phoneNum
+    }
+
+    // avatar to do
+
+    const user = await User.findByIdAndUpdate(req.user.id, newUserData, {
+        new: true,
+        runValidators: true,
+        useFindAndModify: false
+    })
+
+    res.status(200).json({
+        success: true
+    })
+})
+
 
 
 // Logout user   =>   /api/v1/logout
