@@ -1,0 +1,32 @@
+
+  
+  /* Avatar */
+  .avatar {
+    display: inline-block;
+    margin-bottom: 0;
+    height: 6rem;
+    width: 6rem;
+    -webkit-border-radius: 50%;
+    -moz-border-radius: 50%;
+    border-radius: 50%;
+    
+  }
+  
+  .avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+     
+  }
+  
+  .rounded-circle {
+    border-radius: 50% !important;
+  
+  }
+
+
+  .custom-file-label {
+    width: 65%;
+    margin-left: 17%;
+  }
+  

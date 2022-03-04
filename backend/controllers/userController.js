@@ -4,12 +4,18 @@ const ErrorHandler = require('../utils/errorHandler');
 const catchAsyncErrors = require('../middleware/catchAsyncErrors');
 const sendToken = require('../utils/jwtToken');
 const sendEmail = require('../utils/sendEmail');
+const cloudinary = require('cloudinary');
 
 const crypto =require('crypto');
 
 // Register a user   => /api/v1/register
 exports.registerUser = catchAsyncErrors(async (req, res, next) => {
 
+    const result = await cloudinary.v2.uploader.upload(req.body.avatar, {
+        folder: 'avatars',
+        width: 150,
+        crop: "scale"
+    })
 
     const { fname, lname, birthday, email, country, phoneNum, password } = req.body;
 
@@ -21,9 +27,9 @@ exports.registerUser = catchAsyncErrors(async (req, res, next) => {
         country,
         phoneNum,
         password,
-        avatar: {
-            public_id: 'auth image' ,
-            url: 'https://raw.githubusercontent.com/salte-auth/logos/master/images/logo.svg?sanitize=true'
+         avatar: {
+            public_id: result.public_id,
+            url: result.secure_url
         }
     })
 
