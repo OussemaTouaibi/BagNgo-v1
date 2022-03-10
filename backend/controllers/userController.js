@@ -5,32 +5,21 @@ const catchAsyncErrors = require('../middleware/catchAsyncErrors');
 const sendToken = require('../utils/jwtToken');
 const sendEmail = require('../utils/sendEmail');
 const cloudinary = require('cloudinary');
-
 const crypto =require('crypto');
+const fetch = require('node-fetch');
 
 // Register a user   => /api/v1/register
 exports.registerUser = catchAsyncErrors(async (req, res, next) => {
 
-    const result = await cloudinary.v2.uploader.upload(req.body.avatar, {
-        folder: 'avatars',
-        width: 150,
-        crop: "scale"
-    })
 
-    const { fname, lname, birthday, email, country, phoneNum, password } = req.body;
+    const { fname, lname, email, country, password } = req.body;
 
     const user = await User.create({
         fname,
         lname,
-        birthday,
         email,
         country,
-        phoneNum,
         password,
-         avatar: {
-            public_id: result.public_id,
-            url: result.secure_url
-        }
     })
 
     sendToken(user, 200, res)
@@ -43,25 +32,26 @@ exports.loginUser = catchAsyncErrors(async (req, res, next) => {
 
     // Checks if email and password is entered by user
     if (!email || !password) {
-        return next(new ErrorHandler('Please enter email & password', 400))
+        return next(new ErrorHandler('Veuillez saisir votre email et votre mot de passe', 400))
     }
 
     // Finding user in database
     const user = await User.findOne({ email }).select('+password')
 
     if (!user) {
-        return next(new ErrorHandler('Invalid Email or Password', 401));
+        return next(new ErrorHandler('Email ou mot de passe invalide', 401));
     }
 
     // Checks if password is correct or not
     const isPasswordMatched = await user.comparePassword(password);
 
     if (!isPasswordMatched) {
-        return next(new ErrorHandler('Invalid Email or Password', 401));
+        return next(new ErrorHandler('Email ou mot de passe invalide', 401));
     }
 
     sendToken(user, 200, res)
 })
+
 
 // Forgot Password   =>  /api/v1/password/forgot
 exports.forgotPassword = catchAsyncErrors(async (req, res, next) => {
@@ -69,7 +59,7 @@ exports.forgotPassword = catchAsyncErrors(async (req, res, next) => {
     const user = await User.findOne({ email: req.body.email });
 
     if (!user) {
-        return next(new ErrorHandler('User not found with this email', 404));
+        return next(new ErrorHandler('Utilisateur introuvable avec cet e-mail', 404));
     }
 
     // Get reset token
@@ -118,11 +108,11 @@ exports.resetPassword = catchAsyncErrors(async (req, res, next) => {
     })
 
     if (!user) {
-        return next(new ErrorHandler('Password reset token is invalid or has been expired', 400))
+        return next(new ErrorHandler('Le jeton de réinitialisation du mot de passe n est pas valide ou a expiré', 400))
     }
 
     if (req.body.password !== req.body.confirmPassword) {
-        return next(new ErrorHandler('Password does not match', 400))
+        return next(new ErrorHandler('Le mot de passe ne correspond pas', 400))
     }
 
     // Setup new password
@@ -154,7 +144,7 @@ exports.updatePassword = catchAsyncErrors(async (req, res, next) => {
     // Check previous user password
     const isMatched = await user.comparePassword(req.body.oldPassword)
     if (!isMatched) {
-        return next(new ErrorHandler('Old password is incorrect'));
+        return next(new ErrorHandler('Ancien mot de passe est incorrect'));
     }
 
     user.password = req.body.password;
@@ -169,10 +159,10 @@ exports.updateProfile = catchAsyncErrors(async (req, res, next) => {
 
         fname: req.body.fname,
         lname: req.body.lname,
-        birthday: req.body.birthday,
-        email: req.body.email,
         country: req.body.country,
-        phoneNum: req.body.phoneNum
+        email: req.body.email,
+  
+
     }
 
     // avatar to do
@@ -188,6 +178,48 @@ exports.updateProfile = catchAsyncErrors(async (req, res, next) => {
     })
 })
 
+exports.facebooklogin = catchAsyncErrors(async (req, res) => {
+        const {userID, accessToken} = req.body;
+
+        let urlGraphFacebook = `https://graph.facebook.com/v2.11/${userID}/?fields=id,name,email&access_token=${accessToken}`
+        fetch(urlGraphFacebook, {
+            method: 'GET'
+        })
+        .then(response => response.json())
+        .then(response => {
+            const {email, name} =response;
+            User.findOne({email}).exec((err, user) => {
+                if(err) {
+                    return res.status(400).json({
+                        error: "Something went wrong..."
+                    })
+                }else {
+                    let password = email+process.env.JWT_SECRET;
+                    let newUser = new User({name, email, password});
+                    newUser.save((err, data) => {
+                        if(err) {
+                            return res.status(400).json({
+                                error: "Something went wrong..."
+                            })
+                        }
+                        const token = jwt.sign({_id: data._id}, process.env.JWT_SECRET, JWT_EXPIRES_TIME);
+                        const {_id, name, email} = data;
+
+                        res.json({
+                            token,
+                            user: {_id, name, email}
+                        })
+                    })
+                }
+            })
+        })
+    })
+
+exports.googlelogin = catchAsyncErrors(async (req, res) => {
+
+
+})
+
 
 
 // Logout user   =>   /api/v1/logout
@@ -199,6 +231,6 @@ exports.logout = catchAsyncErrors(async (req, res, next) => {
 
     res.status(200).json({
         success: true,
-        message: 'Logged out'
+        message: 'Déconnecté'
     })
 })

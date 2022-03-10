@@ -9,6 +9,8 @@ const {
     getUserProfile, 
     updatePassword,
     updateProfile,
+    googlelogin,
+    facebooklogin,
     logout } = require('../controllers/userController');
 
 
@@ -24,7 +26,8 @@ router.route('/me').get(isAuthenticatedUser, getUserProfile);
 router.route('/password/update').put(isAuthenticatedUser, updatePassword);
 router.route('/me/update').put(isAuthenticatedUser, updateProfile);
 
-
+router.route('/googlelogin').post(googlelogin);
+router.route('/facebooklogin').post(facebooklogin);
 
 
 router.route('/logout').get(logout);

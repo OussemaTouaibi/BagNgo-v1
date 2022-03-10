@@ -1,40 +1,28 @@
-import React, { useEffect } from "react";
+import * as React from 'react';
 import Button from '@mui/material/Button';
-import CssBaseline from '@mui/material/CssBaseline';
 import TextField from '@mui/material/TextField';
-import Link from '@mui/material/Link';
-import Paper from '@mui/material/Paper';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogTitle from '@mui/material/DialogTitle';
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
-import {ThemeProvider } from '@mui/material/styles';
-import FacebookIcon from '@mui/icons-material/Facebook';
-import GoogleIcon from '@mui/icons-material/Google';
-import Stack from '@mui/material/Stack';
-import { useTheme } from '@mui/material/styles';
-import OutlinedInput from '@mui/material/OutlinedInput';
-import InputLabel from '@mui/material/InputLabel';
-import MenuItem from '@mui/material/MenuItem';
+import Link from '@mui/material/Link';
 import FormControl from '@mui/material/FormControl';
+import InputLabel from '@mui/material/InputLabel';
 import Select from '@mui/material/Select';
-import { styled } from '@mui/material/styles';
-import IconButton from '@mui/material/IconButton';
-import PhotoCamera from '@mui/icons-material/PhotoCamera';
-
-
-import AdapterDateFns from '@mui/lab/AdapterDateFns';
-import LocalizationProvider from '@mui/lab/LocalizationProvider';
-import DatePicker from '@mui/lab/DatePicker';
-
-import { useState } from "react";
-import MetaData from '../../shared/metaData';
+import OutlinedInput from '@mui/material/OutlinedInput';
+import MenuItem from '@mui/material/MenuItem';
+import { useTheme } from '@mui/material/styles';
+import { useForm } from "react-hook-form";
+import { useState, useEffect } from "react";
+import Loader from '../../shared/Loader/loader'
 
 import { useAlert } from 'react-alert'
 import { useDispatch, useSelector } from 'react-redux'
 
-import { register, clearErrors } from "../../../actions/userActions";
-import './signup.scss';
-
+import { Register, clearErrors } from "../../../actions/userActions";
 
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
@@ -301,6 +289,77 @@ const countries = [
 	"Åland Islands"
 ];
 
+
+
+ 
+
+
+
+const Signup = () => {
+
+	//signup
+
+	const[user, setUser] = useState({
+        fname: '',
+		lname:'',
+        email: '',
+        password:''
+    })
+
+    const { fname, lname, email, password } = user;
+
+	const onChange = e => {
+	
+		setUser({ ...user, [e.target.name]: e.target.value })
+    }
+
+	const alert = useAlert();
+	const dispatch = useDispatch();
+	const { isAuthenticated, error, loading } = useSelector(state => state.auth);
+  
+	useEffect(() => {
+
+		if(isAuthenticated) {
+	
+			handleClose();
+			alert.success('Inscription Réussie.');
+		}
+	  
+  
+	  if(error) {
+		  alert.error(error);
+		  dispatch(clearErrors());
+		  
+	  }
+  }, [dispatch, alert, isAuthenticated, error])
+  
+  
+  const HandleSubmit = (e) => { 
+	  
+  
+	  const formData = new FormData();
+	  formData.set('fname', fname);
+	  formData.set('lname', lname);
+	  formData.set('email', email);
+	  formData.set('country', country);
+	  formData.set('password', password);
+  
+  
+	  dispatch(Register(formData));
+    
+  
+  };
+  
+	 // validation
+
+  const { register, handleSubmit, formState: {errors} } = useForm();
+
+
+
+  const [country, setCountry] = React.useState([]);
+  const [open, setOpen] = React.useState(false);
+  const theme = useTheme();
+
 function getStyles(name, country, theme) {
   return {
     fontWeight:
@@ -310,85 +369,6 @@ function getStyles(name, country, theme) {
   };
 }
 
-
-const Input = styled('input')({
-    display: 'none',
-   
-  });
-
-function Copyright(props) {
-  return (
-    <Typography variant="body2" color="text.secondary" align="center" {...props}>
-      {'Copyright © '}
-      <Link color="inherit" href="#">
-        BAGNGO
-      </Link>{' '}
-      {new Date().getFullYear()}
-      {'.'}
-    </Typography>
-  );
-}
-
-
-
-
-
-
-const SignUp = ({ history }) => {
-
-	
-	const [fname, setFname] = useState('');
-	const [lname, setLname] = useState('');
-	const [email, setEmail] = useState('');
-	const [phoneNum, setPhonenum] = useState('');
-	const [password, setPassword] = useState('');
-
-	const [birthday, setBirthday] = React.useState(null);
-	const [avatar, setAvatar] = useState('');
-	const [avatarPreview, setAvatarPreview ] = useState('/images/default_avatar.jpg');
-	
-
-	const alert = useAlert();
-    const dispatch = useDispatch();
-
-    const { isAuthenticated, error } = useSelector(state => state.auth);
-
-
-	useEffect(() => {
-
-        if(isAuthenticated) {
-
-			history.push('/login')
-        }
-
-        if(error) {
-            alert.error(error);
-            dispatch(clearErrors());
-        }
-    }, [dispatch, alert, isAuthenticated, error, history])
-
-
-    const handleSubmit = (e) => { 
-		
-		e.preventDefault();
-		
-
-        const formData = new FormData();
-        formData.set('fname', fname);
-        formData.set('lname', lname);
-        formData.set('birthday', birthday);
-        formData.set('email', email);
-        formData.set('country', country);
-        formData.set('phoneNum', phoneNum);
-        formData.set('password', password);
-        formData.set('avatar', avatar);
-
-        dispatch(register(formData))
-	
-	};
-
-    const theme = useTheme();
-  const [country, setCountry] = React.useState([]);
 
   const handleChange = (event) => {
     const {
@@ -400,62 +380,26 @@ const SignUp = ({ history }) => {
     );
   };
 
-  const onChange = e => {
-    if (e.target.name === 'avatar') {
+  const handleClickOpen = () => {
+    setOpen(true);
+  };
 
-        const reader = new FileReader();
-
-        reader.onload = () => {
-            if (reader.readyState === 2) {
-                setAvatarPreview(reader.result)
-                setAvatar(reader.result)
-            }
-        }
-
-        reader.readAsDataURL(e.target.files[0])
-
-    } 
-}
-
+  const handleClose = () => {
+    setOpen(false);
+  };
 
   return (
-	  
-    <ThemeProvider theme={theme}>
-	<MetaData title={'BANGO | Sign Up'} />
-    <Grid container component="main" sx={{ height: '100vh' }}>
-      <CssBaseline />
-        <Grid
-          item
-          xs={false}
-          sm={4}
-          md={7}
-          sx={{
-            backgroundImage: 'url(https://images.pexels.com/photos/9789940/pexels-photo-9789940.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260)',
-            backgroundRepeat: 'no-repeat',
-            backgroundColor: (t) =>
-              t.palette.mode === 'light' ? t.palette.grey[50] : t.palette.grey[900],
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-          }}
-        />
-        <Grid item xs={12} sm={8} md={5} component={Paper} elevation={6} square>
-          <Box
-            sx={{
-              my: 8,
-              mx: 4,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'left',
-             
-            }}
-          >
-           
-            <Typography style={{marginBottom:'2rem'}} component="h1" variant="h5">
-            Créer un compte :
-            </Typography>
-            <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 1 }}>
-            
-            <TextField
+    <React.Fragment>
+      <Button onClick={handleClickOpen}>
+          Inscription
+      </Button>
+      <Dialog open={open} onClose={handleClose}>
+      <DialogTitle>Inscription</DialogTitle>
+	  {loading ? <Loader /> :(
+        <DialogContent>
+        <Grid>         
+        <Box component="form" onSubmit={handleSubmit(HandleSubmit)} noValidate  sx={{ mt: 1 }}>
+        <TextField
                 margin="normal"
                 required
                 fullWidth
@@ -464,8 +408,29 @@ const SignUp = ({ history }) => {
                 name="fname"
                 autoComplete="fname"
                 autoFocus
-                value={fname}
-				onChange={(e) => setFname(e.target.value)}
+				{...register("fname", {pattern: {
+					value: /^[A-Za-z]/i,
+					message: 'seulement des characters' 
+				  }})}
+				{...register("fname", {
+					minLength: {
+					  value: 3,
+					  message: 'Minimum 3 caractères' 
+					}
+				  })}
+				  {...register("fname", {
+					maxLength: {
+					  value: 15,
+					  message: 'Maximum 15 caractères' 
+					}
+				  })}
+				  {...register("fname", {required: "Champ requis"})}
+				  
+					error={!!errors?.fname}
+					helperText={errors?.fname ? errors.fname.message : null}
+
+					value={fname}
+                    onChange={onChange} 
 
               />
            
@@ -478,52 +443,46 @@ const SignUp = ({ history }) => {
                 name="lname"
                 autoComplete="lname"
                 autoFocus
-                value={lname}
-                onChange={(e) => setLname(e.target.value)}
-              />
-                
-                
-				<LocalizationProvider dateAdapter={AdapterDateFns}>
-				<Stack spacing={3}>
-							<DatePicker
-					
-					views={['day']}
-					label="	Date de Naissance"
-					value={birthday}
-					onChange={(newValue) => {
-						setBirthday(newValue);
-					}}
-					renderInput={(params) => <TextField {...params} helperText={null} />}
-					/>
-				</Stack>
-				</LocalizationProvider>
-                
-                 <TextField
-                margin="normal"
-                required
-                fullWidth
-                id="email"
-                label="Email"
-                name="email"
-                autoComplete="email"
-                autoFocus
-                style={{marginTop:"1rem"}}
-				value={email}
-				onChange={(e) => setEmail(e.target.value)}
+				{...register("lname", {pattern: {
+					value: /^[A-Za-z]/i,
+					message: 'seulement des characters' 
+				  }})}
+				{...register("lname", {
+					minLength: {
+					  value: 3,
+					  message: 'Minimum 3 caractères' 
+					}
+				  })}
+				  {...register("lname", {
+					maxLength: {
+					  value: 15,
+					  message: 'Maximum 15 caractères' 
+					}
+				  })}
+				  {...register("lname", {required: "Champ requis"})}
+				  
+					error={!!errors?.lname}
+					helperText={errors?.lname ? errors.lname.message : null}
+					value={lname}
+                    onChange={onChange} 
 
               />
-             
-              <div>
+            <div>
       <FormControl sx={{ width: "100%", marginTop: "1rem"}}>
         <InputLabel id="demo-multiple-name-label">Country</InputLabel>
         <Select
+		{...register("country", {required: "Champ requis"})}
+				  
+		error={!!errors?.country}
+		helperText={errors?.country ? errors.country.message : null}
+				
           labelId="demo-multiple-name-label"
           id="demo-multiple-name"
           value={country}
           onChange={handleChange}
           input={<OutlinedInput label="Country" />}
           MenuProps={MenuProps}
-         
+		  
         >
           {countries.map((name) => (
             <MenuItem
@@ -537,23 +496,31 @@ const SignUp = ({ history }) => {
         </Select>
       </FormControl>
     </div>
-           
-				<TextField
-                margin="normal"
-                required
-                fullWidth
-				type="number"
-                id="phoneNum"
-                label="Téléphone"
-                name="phoneNum"
-                autoComplete="phoneNum"
-                autoFocus
-                value={phoneNum}
-				onChange={(e) => setPhonenum(e.target.value)}
 
+    <TextField
+                margin="normal"
+                fullWidth
+                required
+                id="email"
+                label="Email"
+                name="email"
+                autoComplete="email"
+                autoFocus
+                style={{marginTop:"1rem"}}
+				{...register("email", {pattern: {
+					value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+					message: 'Information invalide' 
+				  }})}
+				  {...register("email", {required: 'Champ requis',
+				   
+				  })}
+				  error={!!errors?.email}
+				  helperText={errors?.email ? errors.email.message : null}
+				  value={email}
+                  onChange={onChange} 
               />
-        
-                <TextField
+
+    <TextField
                 margin="normal"
                 required
                 fullWidth
@@ -562,45 +529,24 @@ const SignUp = ({ history }) => {
                 type="password"
                 id="password"
                 autoComplete="current-password"
-				value={password}
-				onChange={(e) => setPassword(e.target.value)}
+				style={{marginTop:"1rem"}}
+				
+                {...register("password", {
+					minLength: {
+					  value: 7,
+					  message: 'Minimum 7 caractères' 
+					}
+				  })}
+				  {...register("password", {required: "Champ requis"})}
+				  
+					error={!!errors?.password}
+					helperText={errors?.password ? errors.password.message : null}
+					value={password}
+                	onChange={onChange}
 
-                style={{marginTop:"1rem"}}
-                              />
-
-          
-                      <div>
-                      <figure className='avatar mr-3 item-rtl' style={{ marginTop:"2rem"}}>
-                          
-                          <img
-                              src={avatarPreview}
-                              className='rounded-circle'
-                              alt='Avatar Preview'
-                              
-                          />
-                          <Stack direction="row" alignItems="center" spacing={2}>
-                      <label htmlFor="customFile">
-                    <Input name='avatar' accept="image/*" id="customFile" multiple type="file"  onChange={onChange} />
-                    <IconButton color="primary" aria-label="upload picture" component="span" style={{ }}>
-                     <PhotoCamera />
-                     </IconButton>
-                        </label>
-                    </Stack>
-                      </figure>
-                      
-                  </div>
-                          
-            
-
-              <Button
-                type="submit"
-                fullWidth
-                variant="contained"
-                sx={{ mt: 3, mb: 2 }}
-              >
-               Créer Votre Compte
-              </Button>
-              <Grid container>
+					
+					              />
+    <Grid container>
                 <Grid item style={{marginTop: '2rem'}}>
                   <Link href="#" variant="body2">
                     {"Déja un membre? S’identifier"}
@@ -614,22 +560,17 @@ const SignUp = ({ history }) => {
             </Typography>
                
             </Grid>
-            <Grid item xs style={{marginLeft: '8rem'}}>
-            <Button>
-                <FacebookIcon sx={{ fontSize: 40 }} />
-            </Button>
-            <Button
-            
-            >
-                <GoogleIcon sx={{ fontSize: 40 }} />
-            </Button>
-            </Grid>
-              <Copyright sx={{ mt: 5 }} />
-            </Box>
-          </Box>
-        </Grid>
-      </Grid>
-    </ThemeProvider>
+         
+          <Button color="secondary" onClick={handleClose}>Annuler</Button>
+          <Button color="secondary" type="submit"> Créer votre compte </Button>
+		  </Box>   
+		  </Grid>
+		  </DialogContent>
+	  )}
+		  <DialogActions>
+        </DialogActions>
+      </Dialog>
+    </React.Fragment>
   );
 }
-export default SignUp;
+export default Signup;

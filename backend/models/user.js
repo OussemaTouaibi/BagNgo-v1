@@ -15,11 +15,6 @@ const userSchema = new mongoose.Schema({
         required: [true, 'Please enter your last name'],
         maxLength: [15, 'Your name cannot exceed 15 characters']
     },
-    birthday: {
-        type: Date,
-        required: [true, 'Please enter your birthday date'],
-        
-    },
     email: {
         type: String,
         required: [true, 'Please enter your email'],
@@ -31,7 +26,7 @@ const userSchema = new mongoose.Schema({
         required: [true, 'Please select your country'],
         enum: {
             values: [
-                "Afghanistan",
+    "Afghanistan",
 	"Albania",
 	"Algeria",
 	"American Samoa",
@@ -283,29 +278,12 @@ const userSchema = new mongoose.Schema({
             ],
         }
     },
-    phoneNum: {
-        type: String,
-        required: [true, 'Please enter your phone number'],
-        unique: true,
-        validate: [validator.isMobilePhone, 'Please enter valid email address']
-    },
-    password: {
+	password: {
         type: String,
         required: [true, 'Please enter your password'],
-        minLength: [6, 'Your password must be longer than 6 characters'],
+        minLength: [7, 'Your password must be longer than 6 characters'],
         select: false
     },
-    avatar: {
-        public_id: {
-            type: String,
-            required: true
-    },
-        url: {
-            type: String,
-            required: true
-        },
-    },
-   
     role:  {
         type: String,
         default: 'user'
@@ -318,6 +296,7 @@ const userSchema = new mongoose.Schema({
     resetPasswordExpire: Date
 
 })
+
 
 
     // Encrypting password before saving user
@@ -361,6 +340,5 @@ const userSchema = new mongoose.Schema({
 
 
 module.exports = mongoose.model('User', userSchema);
-
 
 	

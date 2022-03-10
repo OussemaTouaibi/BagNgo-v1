@@ -1,28 +1,44 @@
-
-import Login from './components/userAuth/Login/Login';
-import SignUp from './components/userAuth/Signup/Signup';
-import {BrowserRouter as Router , Routes, Route } from 'react-router-dom';
-
 import { useEffect } from 'react';
-import store from './store';
+
 import { loadUser } from './actions/userActions';
-import './App.css';
+import store from './store'
+
+import { ThemeProvider } from '@mui/material/styles';
+import theme from '../src/components/shared/theme'
+import './App.scss';
+
+
+
+import Header from './components/layout/Header/Header';
+import Footer from './components/layout/Footer/Footer';
+import Home from './components/userPages/Home';
+import Test from './components/userPages/test';
+import { Switch, Route } from 'react-router-dom';
+import {BrowserRouter as Router  } from 'react-router-dom';
 
 
 function App() {
   useEffect(() => {
-    store.dispatch(loadUser())
+ store.dispatch(loadUser())
   }, [])
   return (
-   
-  <Router>
-    <Routes>
-   <Route  path='/login' element={<Login />} />
-   <Route  path='/signup' element={<SignUp />} />
+    <div className="App">
+    <ThemeProvider theme={theme}>
+    <Router>
+      <Header />
 
-   </Routes>
-   </Router>
-  
+      <Switch>
+    <Route exact path='/' component={Home} />
+    <Route exact path='/' component={Test} />
+
+    </Switch>
+
+
+    <Footer />
+    </Router>
+    </ThemeProvider>
+</div>
+
   );
 }
 
